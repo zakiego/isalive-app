@@ -5,43 +5,41 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
-	"os"
 	"os/exec"
 	"runtime"
 	"strings"
 	"time"
 
-	cron "github.com/robfig/cron/v3"
+	"github.com/gonutz/w32"
 )
 
 func main() {
 	os := runtime.GOOS
-
-	switch os {
-	case "windows":
-		CronWindows()
-	case "linux":
-		func() {
-			for range time.Tick(time.Minute * 2) {
-				ubuntu()
-			}
-		}()
+	console := w32.GetConsoleWindow()
+	if console != 0 {
+		_, consoleProcID := w32.GetWindowThreadProcessId(console)
+		if w32.GetCurrentProcessId() == consoleProcID {
+			w32.ShowWindowAsync(console, w32.SW_HIDE)
+		}
 	}
-}
+	// CronWindows()
+	func() {
+		for range time.Tick(time.Minute * 3) {
 
-func CronWindows() {
-	c := cron.New()
-	// i := 1
-	c.AddFunc("* * * * *", func() {
-		Windows()
-	})
-	c.Start()
-	time.Sleep(time.Minute * 5)
+			switch os {
+			case "windows":
+				Windows()
+			case "linux":
+				Ubuntu()
+			}
+		}
+	}()
+
 }
 
 func Windows() {
 
-	file, _ := os.Create(`F:\Code\go\isalive-app\log.txt`)
+	// file, _ := os.Create(`F:\Code\go\isalive-app\log.txt`)
 
 	// get list run application
 	cmd := exec.Command(`F:\Code\go\isalive-app\wmctrl.exe`, "-c", "-l")
@@ -68,11 +66,12 @@ func Windows() {
 			output = window
 			continue
 		}
-		output = output + "\n" + window
+		output = output + "; " + window
 	}
 
-	file.WriteString(output)
-	file.Close()
+	fmt.Println(output)
+	// file.WriteString(output)
+	// file.Close()
 
 	link := "https://api-isalive.zakiego.workers.dev/?device=laptop-windows&status="
 	api := fmt.Sprint(link, url.QueryEscape(output))
@@ -97,7 +96,7 @@ func Windows() {
 
 }
 
-func ubuntu() {
+func Ubuntu() {
 
 	// get list run application
 	cmd := exec.Command(`/bin/sh`, "-c", `wmctrl -l|awk '{$3=""; $2=""; $1="";  print $0}'`)
