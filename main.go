@@ -21,7 +21,11 @@ func main() {
 	case "windows":
 		CronWindows()
 	case "linux":
-		ubuntu()
+		func() {
+			for range time.Tick(time.Minute * 2) {
+				ubuntu()
+			}
+		}()
 	}
 }
 
@@ -110,10 +114,14 @@ func ubuntu() {
 	var output string
 	for id, line := range strings.Split(strings.TrimRight(string(stdout), "\n"), "\n") {
 		if id == 0 {
+			continue
+		}
+
+		if id == 1 {
 			output = strings.TrimSpace(line)
 			continue
 		}
-		output = output + "\n" + strings.TrimSpace(line)
+		output = output + "; " + strings.TrimSpace(line)
 	}
 
 	fmt.Println(output)
