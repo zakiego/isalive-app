@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-var skipped = []string{"@!0,0;BDHF", "@!0,1080;BDHF"}
+var skippedLinux = []string{"@!0,0;BDHF", "@!0,1080;BDHF"}
 
 func Linux() {
 
@@ -26,17 +26,17 @@ func Linux() {
 	// print list run application
 	// trim space and join again
 
-	first := false
+	first := true
 
 	var output string
 	for _, line := range strings.Split(strings.TrimRight(string(stdout), "\n"), "\n") {
-		if contains(strings.TrimSpace(line), skipped) {
+		if contains(strings.TrimSpace(line), skippedLinux) {
 			continue
 		}
 
-		if first == false {
+		if !first {
 			output = strings.TrimSpace(line)
-			first = true
+			first = false
 			continue
 		}
 		output = output + "; " + strings.TrimSpace(line)
